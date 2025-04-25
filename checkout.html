@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - E-commerce</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Header with Navbar -->
+    <header class="bg-light py-3">
+        <nav class="navbar navbar-expand-lg navbar-light container">
+            <a class="navbar-brand" href="index.html"><i class="bi bi-shop"></i> ECOMM</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-house-door"></i> Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="product.html"><i class="bi bi-box-seam"></i> Products</a></li>
+                    <li class="nav-item"><a class="nav-link" href="cart.html"><i class="bi bi-cart"></i> Cart</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Checkout Content -->
+    <main class="container mt-4">
+        <h2><i class="bi bi-check-circle"></i> Checkout</h2>
+
+        <!-- Display Cart Items -->
+        <ul id="cartItems" class="list-group mb-4">
+            <!-- Cart items will be displayed here -->
+        </ul>
+        <div id="totalAmount" class="text-right">
+            <h4>Total: $0.00</h4>
+        </div>
+
+        <!-- Checkout Form -->
+        <div class="mt-4">
+            <h5>Enter Your Details</h5>
+            <form id="checkoutForm">
+                <div class="form-group">
+                    <label for="name">Full Name:</label>
+                    <input type="text" id="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="address">Shipping Address:</label>
+                    <input type="text" id="address" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="payment">Payment Method:</label>
+                    <select id="payment" class="form-control" required>
+                        <option value="credit-card">Credit Card</option>
+                        <option value="paypal">PayPal</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Place Order</button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light text-center py-3 mt-4">
+        <p>&copy; 2024 ECOMM. All rights reserved.</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+       document.addEventListener('DOMContentLoaded', function() {
+    // Retrieve cart items from localStorage
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const cartItemsContainer = document.getElementById('cartItems');
+    let totalamount = 0;
+
+    // Display cart items in the UI
+    cart.forEach(item => {
+        const itemElement = document.createElement('li');
+        itemElement.classList.add('list-group-item');
+        itemElement.textContent = `${item.name} - $${item.price} x ${item.quantity}`;
+        cartItemsContainer.appendChild(itemElement);
+        totalamount += item.price * item.quantity;
+        console.log(item.name);
+    });
+
+ 
+
+    // Display the total amount
+    document.getElementById('totalAmount').innerHTML = `<h4>Total: $${totalamount.toFixed(2)}</h4>`;
+
+    // Form submission handling
+    document.getElementById('checkoutForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        // Get form data
+        const fullname = document.getElementById('name').value;
+        const address = document.getElementById('address').value;
+        const payment = document.getElementById('payment').value;
+
+        // Ensure cart has items before proceeding
+        if (cart.length === 0) {
+            alert("Your cart is empty. Please add items before checking out.");
+            return;
+        }
+
+        // Validate form data
+        if (!fullname || !address || !payment) {
+            alert("Please provide your name, address, and payment method.");
+            return;
+        }
+
+        // Prepare data to send to backend
+        const checkoutData = {
+            name,
+            totalamount,
+            fullname,
+            payment,
+            address
+        };
+
+        console.log(checkoutData);
+
+        var api='http://localhost:3000/product/add';
+        try {
+            // Send POST request to backend
+            const response = await fetch(api, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(checkoutData)
+            });
+
+            const data = await response.json();
+            if (data.status) {
+                alert('Order placed successfully!');
+                // Optionally, clear the cart and redirect to a confirmation page
+                localStorage.removeItem('cart');
+                window.location.href = 'index.html';
+            } else {
+                alert('Failed to place the order. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error placing order:', error);
+            alert('An error occurred. Please try again later.');
+        }
+    });
+});
+
+    </script>
+    
+</body>
+</html>
